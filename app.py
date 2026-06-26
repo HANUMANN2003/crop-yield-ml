@@ -151,31 +151,22 @@ for crop yield prediction and farm optimization
     st.markdown("##### End-to-end Machine Learning Pipeline | Agriculture Domain")
     st.markdown("---")
 
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("📦 Total Records",   "1,000,000")
-    c2.metric("🌱 Crops Covered",   "6")
-    c3.metric("🌍 Regions",         "4")
-    c4.metric("📐 Features Used",   "11")
-
+    c1.metric("📦 Records", "1M+")
+    c2.metric("🌱 Crops", "6")
+    c3.metric("🌍 Regions", "4")
+    c4.metric("🎯 Accuracy", "90%")
     st.markdown("---")
     col1, col2 = st.columns(2)
 
     with col1:
-        st.subheader("📋 Project Pipeline")
-        st.markdown("---")
+    st.subheader("🌟 Key Insights")
 
-st.subheader("💡 AI Recommendation")
+    st.info("🌧 Rainfall has a strong influence on crop yield.")
+    st.info("💧 Irrigation improves productivity significantly.")
+    st.info("🌱 Rice and Wheat achieve consistently high yields.")
+    st.info("🌍 Climate conditions directly affect harvest outcomes.")
 
-avg = df.groupby('Crop')['Yield_tons_per_hectare'].mean()[crop]
 
-if reg_pred > avg:
-    st.success(
-        "Expected yield is ABOVE average for this crop. Current conditions look favorable."
-    )
-else:
-    st.warning(
-        "Expected yield is BELOW average. Consider improving irrigation or fertilizer usage."
-    )
 
     with col2:
         st.subheader("🏆 Model Results")
@@ -293,6 +284,18 @@ elif page == "🔮 Predict Yield":
         delta = reg_pred - avg
         st.metric(f"Avg yield for {crop}", f"{avg:.3f} tons/ha",
                   delta=f"{delta:+.3f} vs your prediction")
+        st.markdown("---")
+
+  st.subheader("💡 AI Recommendation")
+
+   if reg_pred > avg:
+       st.success(
+        "Expected yield is ABOVE average for this crop. Current conditions look favorable."
+    )
+   else:
+       st.warning(
+        "Expected yield is BELOW average. Consider improving irrigation or fertilizer usage."
+    )
 
 
 # ══════════════════════════════════════════════════════════════════════════════

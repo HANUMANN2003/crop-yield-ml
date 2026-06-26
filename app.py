@@ -139,54 +139,78 @@ with st.sidebar:
 # ══════════════════════════════════════════════════════════════════════════════
 if page == "🏠 Overview":
     st.markdown("""
-<div class="hero">
-<h1>🌾 Smart Crop Yield Analytics</h1>
-<p>
-AI-powered agricultural intelligence platform
-for crop yield prediction and farm optimization
-</p>
-</div>
-""", unsafe_allow_html=True)
+    <div class="hero">
+    <h1>🌾 Smart Crop Yield Analytics</h1>
+    <p>
+    AI-powered agricultural intelligence platform
+    for crop yield prediction and farm optimization
+    </p>
+    </div>
+    """, unsafe_allow_html=True)
+
     st.title("🌾 Crop Yield Prediction Dashboard")
     st.markdown("##### End-to-end Machine Learning Pipeline | Agriculture Domain")
     st.markdown("---")
+
+    c1, c2, c3, c4 = st.columns(4)
 
     c1.metric("📦 Records", "1M+")
     c2.metric("🌱 Crops", "6")
     c3.metric("🌍 Regions", "4")
     c4.metric("🎯 Accuracy", "90%")
+
     st.markdown("---")
+
     col1, col2 = st.columns(2)
 
     with col1:
-    st.subheader("🌟 Key Insights")
+        st.subheader("🌟 Key Insights")
 
-    st.info("🌧 Rainfall has a strong influence on crop yield.")
-    st.info("💧 Irrigation improves productivity significantly.")
-    st.info("🌱 Rice and Wheat achieve consistently high yields.")
-    st.info("🌍 Climate conditions directly affect harvest outcomes.")
-
-
+        st.info("🌧 Rainfall has a strong influence on crop yield.")
+        st.info("💧 Irrigation improves productivity significantly.")
+        st.info("🌱 Rice and Wheat achieve consistently high yields.")
+        st.info("🌍 Climate conditions directly affect harvest outcomes.")
 
     with col2:
         st.subheader("🏆 Model Results")
+
         results = pd.DataFrame({
-            "Task":       ["Regression", "Classification"],
-            "Model":      ["HistGBR", "HistGBC"],
+            "Task": ["Regression", "Classification"],
+            "Model": ["HistGBR", "HistGBC"],
             "Key Metric": ["R² = 0.880", "Accuracy = 90%"],
-            "MAE / F1":   ["0.442 tons/ha", "F1 = 0.90"],
-            "Data Size":  ["1M rows", "1M rows"],
+            "MAE / F1": ["0.442 tons/ha", "F1 = 0.90"],
+            "Data Size": ["1M rows", "1M rows"],
         })
+
         st.dataframe(results, use_container_width=True, hide_index=True)
 
         st.subheader("📊 Yield Distribution Preview")
-        fig, ax = plt.subplots(figsize=(6, 3))
-        ax.hist(df['Yield_tons_per_hectare'], bins=60, color='#40916c', edgecolor='white', alpha=0.85)
-        ax.axvline(YIELD_MEDIAN, color='#d62828', linestyle='--', linewidth=1.8, label=f'Median = {YIELD_MEDIAN:.2f}')
-        ax.set_xlabel('Yield (tons/ha)'); ax.set_ylabel('Count')
-        ax.set_title('Target Variable Distribution'); ax.legend()
-        fig.tight_layout(); st.pyplot(fig); plt.close()
 
+        fig, ax = plt.subplots(figsize=(6, 3))
+        ax.hist(
+            df['Yield_tons_per_hectare'],
+            bins=60,
+            color='#40916c',
+            edgecolor='white',
+            alpha=0.85
+        )
+
+        ax.axvline(
+            YIELD_MEDIAN,
+            color='#d62828',
+            linestyle='--',
+            linewidth=1.8,
+            label=f'Median = {YIELD_MEDIAN:.2f}'
+        )
+
+        ax.set_xlabel('Yield (tons/ha)')
+        ax.set_ylabel('Count')
+        ax.set_title('Target Variable Distribution')
+        ax.legend()
+
+        fig.tight_layout()
+        st.pyplot(fig)
+        plt.close()
 
 # ══════════════════════════════════════════════════════════════════════════════
 # PAGE 2 — PREDICT

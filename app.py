@@ -353,80 +353,17 @@ elif page == "📈 Model Insights":
     with tab1:
     st.subheader("🌲 Feature Importance")
 
-    try:
-        from sklearn.inspection import permutation_importance
+    st.info("""
+    This project uses HistGradientBoosting models.
 
-        sample = df.sample(min(2000, len(df)), random_state=42)
+    HistGradientBoostingRegressor and HistGradientBoostingClassifier
+    do not provide the feature_importances_ attribute.
 
-        X_sample = sample[FEATURES]
-        y_reg = sample["Yield_tons_per_hectare"]
-        y_clf = sample["High_Yield"]
+    For production deployment, feature importance should be calculated
+    using Permutation Importance or SHAP.
 
-        c1, c2 = st.columns(2)
-
-        with c1:
-            st.subheader("Regression Model")
-
-            reg_perm = permutation_importance(
-                reg_model,
-                X_sample,
-                y_reg,
-                n_repeats=3,
-                random_state=42
-            )
-
-            imp_reg = pd.Series(
-                reg_perm.importances_mean,
-                index=[
-                    'Rainfall', 'Temperature', 'Days to Harvest',
-                    'Fertilizer', 'Irrigation', 'Rain/Day',
-                    'Climate Index', 'Region', 'Soil Type',
-                    'Crop', 'Weather'
-                ]
-            ).sort_values()
-
-            fig, ax = plt.subplots(figsize=(6, 5))
-            ax.barh(imp_reg.index, imp_reg.values)
-            ax.set_title("Feature Importance — Regressor")
-            ax.set_xlabel("Permutation Importance")
-            fig.tight_layout()
-            st.pyplot(fig)
-            plt.close()
-
-        with c2:
-            st.subheader("Classification Model")
-
-            clf_perm = permutation_importance(
-                clf_model,
-                X_sample,
-                y_clf,
-                n_repeats=3,
-                random_state=42
-            )
-
-            imp_clf = pd.Series(
-                clf_perm.importances_mean,
-                index=[
-                    'Rainfall', 'Temperature', 'Days to Harvest',
-                    'Fertilizer', 'Irrigation', 'Rain/Day',
-                    'Climate Index', 'Region', 'Soil Type',
-                    'Crop', 'Weather'
-                ]
-            ).sort_values()
-
-            fig, ax = plt.subplots(figsize=(6, 5))
-            ax.barh(imp_clf.index, imp_clf.values)
-            ax.set_title("Feature Importance — Classifier")
-            ax.set_xlabel("Permutation Importance")
-            fig.tight_layout()
-            st.pyplot(fig)
-            plt.close()
-
-    except Exception as e:
-        st.warning(
-            f"Feature importance could not be calculated: {e}"
-        )
-
+    Model performance metrics are available in the next tab.
+    """)
     with tab2:
         st.subheader("Model Performance Summary")
         col1, col2, col3, col4 = st.columns(4)

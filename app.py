@@ -310,17 +310,7 @@ elif page == "🔮 Predict Yield":
                   delta=f"{delta:+.3f} vs your prediction")
         st.markdown("---")
 
-  st.subheader("💡 AI Recommendation")
-
-   if reg_pred > avg:
-       st.success(
-        "Expected yield is ABOVE average for this crop. Current conditions look favorable."
-    )
-   else:
-       st.warning(
-        "Expected yield is BELOW average. Consider improving irrigation or fertilizer usage."
-    )
-
+  
 
 # ══════════════════════════════════════════════════════════════════════════════
 # PAGE 3 — EDA DASHBOARD

@@ -351,32 +351,81 @@ elif page == "📈 Model Insights":
     tab1, tab2 = st.tabs(["🌲 Feature Importance", "🎯 Model Performance"])
 
     with tab1:
+    st.subheader("🌲 Feature Importance")
+
+    try:
+        from sklearn.inspection import permutation_importance
+
+        sample = df.sample(min(2000, len(df)), random_state=42)
+
+        X_sample = sample[FEATURES]
+        y_reg = sample["Yield_tons_per_hectare"]
+        y_clf = sample["High_Yield"]
+
         c1, c2 = st.columns(2)
-        feat_labels = ['Rainfall', 'Temperature', 'Days to Harvest',
-                       'Fertilizer', 'Irrigation', 'Rain/Day',
-                       'Climate Index', 'Region', 'Soil Type', 'Crop', 'Weather']
 
         with c1:
             st.subheader("Regression Model")
-            imp_reg = pd.Series(reg_model.feature_importances_, index=feat_labels).sort_values()
+
+            reg_perm = permutation_importance(
+                reg_model,
+                X_sample,
+                y_reg,
+                n_repeats=3,
+                random_state=42
+            )
+
+            imp_reg = pd.Series(
+                reg_perm.importances_mean,
+                index=[
+                    'Rainfall', 'Temperature', 'Days to Harvest',
+                    'Fertilizer', 'Irrigation', 'Rain/Day',
+                    'Climate Index', 'Region', 'Soil Type',
+                    'Crop', 'Weather'
+                ]
+            ).sort_values()
+
             fig, ax = plt.subplots(figsize=(6, 5))
-            colors = ['#b7e4c7' if v < imp_reg.max() * 0.6 else '#40916c' for v in imp_reg.values]
-            bars = ax.barh(imp_reg.index, imp_reg.values, color=colors, edgecolor='white')
-            ax.bar_label(bars, fmt='%.3f', padding=3, fontsize=8)
-            ax.set_title('Feature Importance — Regressor', fontweight='bold')
-            ax.set_xlabel('Importance Score')
-            fig.tight_layout(); st.pyplot(fig); plt.close()
+            ax.barh(imp_reg.index, imp_reg.values)
+            ax.set_title("Feature Importance — Regressor")
+            ax.set_xlabel("Permutation Importance")
+            fig.tight_layout()
+            st.pyplot(fig)
+            plt.close()
 
         with c2:
             st.subheader("Classification Model")
-            imp_clf = pd.Series(clf_model.feature_importances_, index=feat_labels).sort_values()
+
+            clf_perm = permutation_importance(
+                clf_model,
+                X_sample,
+                y_clf,
+                n_repeats=3,
+                random_state=42
+            )
+
+            imp_clf = pd.Series(
+                clf_perm.importances_mean,
+                index=[
+                    'Rainfall', 'Temperature', 'Days to Harvest',
+                    'Fertilizer', 'Irrigation', 'Rain/Day',
+                    'Climate Index', 'Region', 'Soil Type',
+                    'Crop', 'Weather'
+                ]
+            ).sort_values()
+
             fig, ax = plt.subplots(figsize=(6, 5))
-            colors = ['#b7e4c7' if v < imp_clf.max() * 0.6 else '#2d6a4f' for v in imp_clf.values]
-            bars = ax.barh(imp_clf.index, imp_clf.values, color=colors, edgecolor='white')
-            ax.bar_label(bars, fmt='%.3f', padding=3, fontsize=8)
-            ax.set_title('Feature Importance — Classifier', fontweight='bold')
-            ax.set_xlabel('Importance Score')
-            fig.tight_layout(); st.pyplot(fig); plt.close()
+            ax.barh(imp_clf.index, imp_clf.values)
+            ax.set_title("Feature Importance — Classifier")
+            ax.set_xlabel("Permutation Importance")
+            fig.tight_layout()
+            st.pyplot(fig)
+            plt.close()
+
+    except Exception as e:
+        st.warning(
+            f"Feature importance could not be calculated: {e}"
+        )
 
     with tab2:
         st.subheader("Model Performance Summary")

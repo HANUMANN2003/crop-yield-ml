@@ -351,48 +351,53 @@ elif page == "📈 Model Insights":
     tab1, tab2 = st.tabs(["🌲 Feature Importance", "🎯 Model Performance"])
 
     with tab1:
-    st.subheader("🌲 Feature Importance")
+        st.subheader("🌲 Feature Importance")
 
-    st.info("""
-    This project uses HistGradientBoosting models.
+        st.info("""
+        This project uses HistGradientBoosting models.
 
-    HistGradientBoostingRegressor and HistGradientBoostingClassifier
-    do not provide the feature_importances_ attribute.
+        HistGradientBoostingRegressor and HistGradientBoostingClassifier
+        do not provide the feature_importances_ attribute.
 
-    For production deployment, feature importance should be calculated
-    using Permutation Importance or SHAP.
+        Model performance metrics are available in the next tab.
+        """)
 
-    Model performance metrics are available in the next tab.
-    """)
     with tab2:
         st.subheader("Model Performance Summary")
+
         col1, col2, col3, col4 = st.columns(4)
-        col1.metric("Regression R²",  "0.880", "↑ Great fit")
+
+        col1.metric("Regression R²", "0.880", "↑ Great fit")
         col2.metric("Regression MAE", "0.442", "tons/ha error")
-        col3.metric("Clf Accuracy",   "90%",   "↑ Balanced classes")
-        col4.metric("Clf F1 Score",   "0.90",  "Both classes")
+        col3.metric("Clf Accuracy", "90%", "↑ Balanced classes")
+        col4.metric("Clf F1 Score", "0.90", "Both classes")
 
         st.markdown("---")
+
         st.subheader("Why HistGradientBoosting?")
+
         compare = pd.DataFrame({
-            "Model":           ["RandomForest", "HistGradientBoosting"],
-            "R² Score":        [0.872, 0.880],
-            "MAE":             [0.456, 0.442],
-            "Training Speed":  ["~3 min (100k)", "~2 min (1M)"],
-            "Memory":          ["High", "Low"],
-            "Large Data":      ["❌ Slow", "✅ Fast"],
+            "Model": ["RandomForest", "HistGradientBoosting"],
+            "R² Score": [0.872, 0.880],
+            "MAE": [0.456, 0.442],
+            "Training Speed": ["~3 min (100k)", "~2 min (1M)"],
+            "Memory": ["High", "Low"],
+            "Large Data": ["❌ Slow", "✅ Fast"],
         })
+
         st.dataframe(compare, use_container_width=True, hide_index=True)
 
         st.markdown("---")
-        st.subheader("Confusion Matrix Interpretation")
-        st.markdown("""
-        | | Predicted Low | Predicted High |
-        |---|---|---|
-        | **Actual Low**  | ✅ 90k True Negative  | ❌ 10k False Positive |
-        | **Actual High** | ❌ 10k False Negative | ✅ 90k True Positive  |
 
-        - **90% of predictions are correct** on both classes
-        - Classes are **perfectly balanced** (median split)
-        - Model generalises well with no class bias
-        """)
+        st.subheader("Confusion Matrix Interpretation")
+
+        st.markdown("""
+| | Predicted Low | Predicted High |
+|---|---|---|
+| **Actual Low** | ✅ 90k True Negative | ❌ 10k False Positive |
+| **Actual High** | ❌ 10k False Negative | ✅ 90k True Positive |
+
+- **90% of predictions are correct**
+- **Classes are balanced**
+- **Model generalises well**
+""")

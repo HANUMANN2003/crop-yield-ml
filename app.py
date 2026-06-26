@@ -17,40 +17,56 @@ st.set_page_config(
 # ── Custom CSS ────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-    .main { background-color: #f8faf5; }
-    .stMetric { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
-    .block-container { padding-top: 2rem; }
-    h1 { color: #2d6a4f; font-weight: 800; }
-    h2, h3 { color: #40916c; }
-    .st-emotion-cache-1v0mbdj { border-radius: 12px; }
-    div[data-testid="metric-container"] {
-        background: white;
-        border: 1px solid #e0f0e9;
-        border-radius: 12px;
-        padding: 16px 20px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    }
-    .prediction-box {
-        background: linear-gradient(135deg, #2d6a4f, #40916c);
-        color: white;
-        border-radius: 16px;
-        padding: 28px;
-        text-align: center;
-        font-size: 1.6rem;
-        font-weight: 700;
-        margin: 16px 0;
-        box-shadow: 0 4px 20px rgba(45,106,79,0.35);
-    }
-    .high-yield { background: linear-gradient(135deg, #1b4332, #2d6a4f); }
-    .low-yield  { background: linear-gradient(135deg, #774936, #b5541f); }
-    .sidebar-info {
-        background: #e8f5e9;
-        border-left: 4px solid #40916c;
-        border-radius: 8px;
-        padding: 12px 16px;
-        font-size: 0.85rem;
-        margin-top: 12px;
-    }
+
+.main {
+    background-color: #f5f7fb;
+}
+
+.block-container {
+    padding-top: 1rem;
+    padding-bottom: 2rem;
+}
+
+h1,h2,h3 {
+    color:#1b4332;
+}
+
+div[data-testid="metric-container"] {
+    background:white;
+    border-radius:18px;
+    padding:15px;
+    border:none;
+    box-shadow:0px 3px 12px rgba(0,0,0,0.08);
+}
+
+.stButton button {
+    width:100%;
+    height:50px;
+    border-radius:12px;
+    font-weight:700;
+}
+
+.hero {
+    background:linear-gradient(
+        135deg,
+        #2d6a4f,
+        #52b788
+    );
+    padding:30px;
+    border-radius:20px;
+    color:white;
+    text-align:center;
+    margin-bottom:20px;
+}
+
+.prediction-card {
+    background:white;
+    padding:25px;
+    border-radius:20px;
+    box-shadow:0px 3px 12px rgba(0,0,0,0.08);
+    text-align:center;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -78,29 +94,59 @@ YIELD_MEDIAN = 4.651808
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.image("https://img.icons8.com/color/96/wheat.png", width=72)
+
+    st.image(
+        "https://cdn-icons-png.flaticon.com/512/2909/2909763.png",
+        width=80
+    )
+
     st.title("🌾 Crop Yield AI")
+
     st.markdown("---")
-    page = st.radio("Navigate", ["🏠 Overview", "🔮 Predict Yield", "📊 EDA Dashboard", "📈 Model Insights"])
+
+    page = st.selectbox(
+        "📌 Navigation",
+        [
+            "🏠 Overview",
+            "🔮 Predict Yield",
+            "📊 EDA Dashboard",
+            "📈 Model Insights"
+        ]
+    )
+
     st.markdown("---")
-    st.markdown("""
-    <div class='sidebar-info'>
-    <b>Dataset</b><br>
-    🗂 1,000,000 rows<br>
-    📌 10 features<br>
-    🌍 4 Regions · 6 Crops<br>
-    🤖 HistGradientBoosting<br><br>
-    <b>Model Performance</b><br>
-    📉 Regression R² = 0.88<br>
-    🎯 Classification Acc = 90%
-    </div>
-    """, unsafe_allow_html=True)
+
+    st.metric("🎯 Accuracy", "90%")
+    st.metric("📈 R² Score", "0.88")
+
+    st.markdown("---")
+
+    st.success("""
+    🌱 AI-Powered Agriculture
+
+    • 1M Records
+
+    • 6 Crops
+
+    • 4 Regions
+
+    • HistGradientBoosting
+    """)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
 # PAGE 1 — OVERVIEW
 # ══════════════════════════════════════════════════════════════════════════════
 if page == "🏠 Overview":
+    st.markdown("""
+<div class="hero">
+<h1>🌾 Smart Crop Yield Analytics</h1>
+<p>
+AI-powered agricultural intelligence platform
+for crop yield prediction and farm optimization
+</p>
+</div>
+""", unsafe_allow_html=True)
     st.title("🌾 Crop Yield Prediction Dashboard")
     st.markdown("##### End-to-end Machine Learning Pipeline | Agriculture Domain")
     st.markdown("---")
@@ -116,16 +162,20 @@ if page == "🏠 Overview":
 
     with col1:
         st.subheader("📋 Project Pipeline")
-        steps = [
-            ("1️⃣", "Data Collection",       "Kaggle Agriculture Dataset"),
-            ("2️⃣", "Data Cleaning",          "Nulls · Duplicates · Outliers · Typos"),
-            ("3️⃣", "EDA",                    "Distributions · Correlations · Group Analysis"),
-            ("4️⃣", "Feature Engineering",    "Rain/Day · Climate Index · Label Encoding"),
-            ("5️⃣", "Model Training",         "HistGradientBoosting (Reg + Clf)"),
-            ("6️⃣", "Deployment",             "Streamlit Interactive Dashboard"),
-        ]
-        for icon, title, desc in steps:
-            st.markdown(f"**{icon} {title}** — _{desc}_")
+        st.markdown("---")
+
+st.subheader("💡 AI Recommendation")
+
+avg = df.groupby('Crop')['Yield_tons_per_hectare'].mean()[crop]
+
+if reg_pred > avg:
+    st.success(
+        "Expected yield is ABOVE average for this crop. Current conditions look favorable."
+    )
+else:
+    st.warning(
+        "Expected yield is BELOW average. Consider improving irrigation or fertilizer usage."
+    )
 
     with col2:
         st.subheader("🏆 Model Results")

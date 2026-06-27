@@ -995,28 +995,28 @@ Expected yield range and any cost-saving tips aligned with the farmer's goal ({a
 
 Keep the tone practical, simple and actionable. Use bullet points where helpful."""
 
-        # ── Call Gemini API ───────────────────────────────────────────────────
+        # ── Call Groq API ────────────────────────────────────────────────────
         with st.spinner("🤖 AI is analyzing your farm conditions..."):
             try:
                 import requests, json
 
                 try:
-                    api_key = st.secrets["GEMINI_API_KEY"]
+                    api_key = st.secrets["GROQ_API_KEY"]
                 except KeyError:
-                    st.error("❌ API key not found. Add GEMINI_API_KEY in Streamlit Secrets (Manage app → Secrets).")
+                    st.error("❌ API key not found. Add GROQ_API_KEY in Streamlit Secrets (Manage app → Secrets).")
                     st.stop()
 
                 response = requests.post(
-                    f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}",
-                    headers={"Content-Type": "application/json"},
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    headers={
+                        "Content-Type": "application/json",
+                        "Authorization": f"Bearer {api_key}"
+                    },
                     json={
-                        "contents": [{
-                            "parts": [{"text": prompt}]
-                        }],
-                        "generationConfig": {
-                            "maxOutputTokens": 1500,
-                            "temperature": 0.7
-                        }
+                        "model": "llama-3.3-70b-versatile",
+                        "messages": [{"role": "user", "content": prompt}],
+                        "max_tokens": 1500,
+                        "temperature": 0.7
                     },
                     timeout=60
                 )
@@ -1024,7 +1024,7 @@ Keep the tone practical, simple and actionable. Use bullet points where helpful.
                 data = response.json()
 
                 if response.status_code == 200:
-                    ai_text = data["candidates"][0]["content"]["parts"][0]["text"]
+                    ai_text = data["choices"][0]["message"]["content"]
 
                     # ── Show data context summary ─────────────────────────────
                     st.markdown("### 📊 Data-Driven Context Used")

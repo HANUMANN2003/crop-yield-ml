@@ -995,28 +995,28 @@ Expected yield range and any cost-saving tips aligned with the farmer's goal ({a
 
 Keep the tone practical, simple and actionable. Use bullet points where helpful."""
 
-        # ── Call Claude API ───────────────────────────────────────────────────
+        # ── Call Gemini API ───────────────────────────────────────────────────
         with st.spinner("🤖 AI is analyzing your farm conditions..."):
             try:
                 import requests, json
 
                 try:
-                    api_key = st.secrets["ANTHROPIC_API_KEY"]
+                    api_key = st.secrets["GEMINI_API_KEY"]
                 except KeyError:
-                    st.error("❌ API key not found. Add ANTHROPIC_API_KEY in Streamlit Secrets (Manage app → Secrets).")
+                    st.error("❌ API key not found. Add GEMINI_API_KEY in Streamlit Secrets (Manage app → Secrets).")
                     st.stop()
 
                 response = requests.post(
-                    "https://api.anthropic.com/v1/messages",
-                    headers={
-                        "Content-Type": "application/json",
-                        "x-api-key": api_key,
-                        "anthropic-version": "2023-06-01"
-                    },
+                    f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}",
+                    headers={"Content-Type": "application/json"},
                     json={
-                        "model": "claude-sonnet-4-6",
-                        "max_tokens": 1500,
-                        "messages": [{"role": "user", "content": prompt}]
+                        "contents": [{
+                            "parts": [{"text": prompt}]
+                        }],
+                        "generationConfig": {
+                            "maxOutputTokens": 1500,
+                            "temperature": 0.7
+                        }
                     },
                     timeout=60
                 )
@@ -1024,7 +1024,7 @@ Keep the tone practical, simple and actionable. Use bullet points where helpful.
                 data = response.json()
 
                 if response.status_code == 200:
-                    ai_text = data["content"][0]["text"]
+                    ai_text = data["candidates"][0]["content"]["parts"][0]["text"]
 
                     # ── Show data context summary ─────────────────────────────
                     st.markdown("### 📊 Data-Driven Context Used")

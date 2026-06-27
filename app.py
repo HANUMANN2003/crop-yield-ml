@@ -1,11 +1,12 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.express as px
 import plotly.graph_objects as go
+from sklearn.ensemble import HistGradientBoostingRegressor, HistGradientBoostingClassifier
+from sklearn.preprocessing import LabelEncoder
 
 # ── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -86,20 +87,47 @@ div[data-testid="metric-container"] {
 </style>
 """, unsafe_allow_html=True)
 
-# ── Load assets ───────────────────────────────────────────────────────────────
-@st.cache_resource
-def load_models():
-    reg = joblib.load("regression_model.pkl")
-    clf = joblib.load("classification_model.pkl")
-    le  = joblib.load("label_encoders.pkl")
-    return reg, clf, le
-
+# ── Load & Train ──────────────────────────────────────────────────────────────
 @st.cache_data
 def load_data():
     return pd.read_csv("crop_yield_cleaned.csv")
 
-reg_model, clf_model, encoders = load_models()
+@st.cache_resource
+def train_models(_df):
+    """Train models on-the-fly from CSV (no .pkl needed)."""
+    df_train = _df.copy()
+
+    # Label encode categorical columns
+    cat_cols = ['Region', 'Soil_Type', 'Crop', 'Weather_Condition']
+    encoders = {}
+    for col in cat_cols:
+        le = LabelEncoder()
+        df_train[f"{col}_enc"] = le.fit_transform(df_train[col].astype(str))
+        encoders[col] = le
+
+    # Features & targets
+    features = ['Rainfall_mm', 'Temperature_Celsius', 'Days_to_Harvest',
+                'Fertilizer_Used', 'Irrigation_Used', 'Rain_per_Day',
+                'Climate_Index', 'Region_enc', 'Soil_Type_enc',
+                'Crop_enc', 'Weather_Condition_enc']
+
+    X = df_train[features]
+    y_reg = df_train['Yield_tons_per_hectare']
+    y_clf = df_train['High_Yield']
+
+    # Train models (fast even on 1M rows)
+    reg = HistGradientBoostingRegressor(max_iter=100, random_state=42)
+    clf = HistGradientBoostingClassifier(max_iter=100, random_state=42)
+
+    reg.fit(X, y_reg)
+    clf.fit(X, y_clf)
+
+    return reg, clf, encoders
+
 df = load_data()
+
+with st.spinner("⏳ Setting up AI models... (first load only, ~30 sec)"):
+    reg_model, clf_model, encoders = train_models(df)
 
 FEATURES = ['Rainfall_mm', 'Temperature_Celsius', 'Days_to_Harvest',
             'Fertilizer_Used', 'Irrigation_Used', 'Rain_per_Day',

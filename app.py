@@ -161,7 +161,8 @@ with st.sidebar:
             "🔮 Predict Yield",
             "📊 EDA Dashboard",
             "📈 Model Insights",
-            "🗺️ Region Analysis",       # ← NEW PAGE
+            "🗺️ Region Analysis",
+            "🤖 AI Farm Advisor",
         ]
     )
 
@@ -866,3 +867,233 @@ elif page == "🗺️ Region Analysis":
             file_name="filtered_crop_yield.csv",
             mime="text/csv",
         )
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# PAGE 6 — AI FARM ADVISOR  (Claude API powered)
+# ══════════════════════════════════════════════════════════════════════════════
+elif page == "🤖 AI Farm Advisor":
+    st.markdown("""
+    <div class="hero">
+        <h1>🤖 AI Farm Advisor</h1>
+        <p>Powered by Claude AI · Get personalized crop, fertilizer & full farming plans</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("Fill in your farm details below and the AI will generate a **complete, personalized farming recommendation**.")
+    st.markdown("---")
+
+    # ── Input Form ────────────────────────────────────────────────────────────
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.subheader("🌍 Location & Soil")
+        ai_region  = st.selectbox("Region",    sorted(df["Region"].dropna().unique()),        key="ai_region")
+        ai_soil    = st.selectbox("Soil Type",  sorted(df["Soil_Type"].dropna().unique()),     key="ai_soil")
+        ai_weather = st.selectbox("Expected Weather", sorted(df["Weather_Condition"].dropna().unique()), key="ai_weather")
+
+    with col2:
+        st.subheader("🌧️ Climate")
+        ai_rainfall = st.slider("Expected Rainfall (mm)",
+                                int(df["Rainfall_mm"].min()), int(df["Rainfall_mm"].max()),
+                                int(df["Rainfall_mm"].median()), key="ai_rain")
+        ai_temp     = st.slider("Temperature (°C)",
+                                int(df["Temperature_Celsius"].min()), int(df["Temperature_Celsius"].max()),
+                                int(df["Temperature_Celsius"].median()), key="ai_temp")
+        ai_days     = st.slider("Available Harvest Window (days)", 60, 149, 105, key="ai_days")
+
+    with col3:
+        st.subheader("🌿 Current Practices")
+        ai_fertilizer = st.radio("Do you use Fertilizer?", ["Yes", "No"], horizontal=True, key="ai_fert")
+        ai_irrigation = st.radio("Do you use Irrigation?", ["Yes", "No"], horizontal=True, key="ai_irri")
+        ai_crop_pref  = st.selectbox("Preferred Crop (or let AI decide)",
+                                     ["Let AI Decide"] + sorted(df["Crop"].dropna().unique()),
+                                     key="ai_crop")
+        ai_goal       = st.selectbox("Your Primary Goal",
+                                     ["Maximize Yield", "Minimize Cost", "Sustainable Farming", "Quick Harvest"],
+                                     key="ai_goal")
+
+    st.markdown("---")
+
+    # ── Data-driven context from dataset ─────────────────────────────────────
+    def get_data_context(region, soil, weather, rainfall, temp):
+        """Pull relevant stats from dataset to ground the AI response."""
+        mask = (df["Region"] == region) & (df["Soil_Type"] == soil)
+        sub  = df[mask] if len(df[mask]) > 50 else df[df["Region"] == region]
+
+        best_crop    = sub.groupby("Crop")["Yield_tons_per_hectare"].mean().idxmax()
+        best_yield   = sub.groupby("Crop")["Yield_tons_per_hectare"].mean().max()
+        avg_yield    = sub["Yield_tons_per_hectare"].mean()
+        fert_impact  = sub.groupby("Fertilizer_Used")["Yield_tons_per_hectare"].mean()
+        irri_impact  = sub.groupby("Irrigation_Used")["Yield_tons_per_hectare"].mean()
+        avg_harvest  = sub["Days_to_Harvest"].mean()
+
+        fert_gain = (fert_impact.get(True, 0) - fert_impact.get(False, 0))
+        irri_gain = (irri_impact.get(True, 0) - irri_impact.get(False, 0))
+
+        return {
+            "best_crop":   best_crop,
+            "best_yield":  round(best_yield, 2),
+            "avg_yield":   round(avg_yield, 2),
+            "fert_gain":   round(fert_gain, 3),
+            "irri_gain":   round(irri_gain, 3),
+            "avg_harvest": round(avg_harvest, 0),
+        }
+
+    if st.button("🚀 Generate AI Farming Plan", type="primary", use_container_width=True, key="ai_btn"):
+
+        ctx = get_data_context(ai_region, ai_soil, ai_weather, ai_rainfall, ai_temp)
+
+        crop_line = (f"The farmer prefers to grow {ai_crop_pref}."
+                     if ai_crop_pref != "Let AI Decide"
+                     else f"Based on dataset analysis, the best performing crop for this region+soil is {ctx['best_crop']} (avg yield {ctx['best_yield']} t/ha). Suggest the best crop.")
+
+        prompt = f"""You are an expert agricultural advisor with deep knowledge of Indian farming practices.
+
+A farmer has provided the following details:
+- Region: {ai_region}
+- Soil Type: {ai_soil}
+- Expected Weather: {ai_weather}
+- Expected Rainfall: {ai_rainfall} mm
+- Temperature: {ai_temp}°C
+- Harvest Window: {ai_days} days
+- Currently uses Fertilizer: {ai_fertilizer}
+- Currently uses Irrigation: {ai_irrigation}
+- Primary Goal: {ai_goal}
+- {crop_line}
+
+Data-driven insights from 1 million crop records for this region/soil:
+- Average yield in this region+soil: {ctx['avg_yield']} t/ha
+- Best performing crop: {ctx['best_crop']} ({ctx['best_yield']} t/ha avg)
+- Yield gain from using fertilizer: +{ctx['fert_gain']} t/ha
+- Yield gain from using irrigation: +{ctx['irri_gain']} t/ha
+- Average days to harvest: {ctx['avg_harvest']} days
+
+Please provide a comprehensive farming recommendation with these exact sections:
+
+## 🌱 Crop Recommendation
+Recommend the best 1-2 crops for this farmer with reasons based on their region, soil, climate and goal.
+
+## 🧪 Fertilizer Advice
+Specific fertilizer type, quantity, and application schedule for the recommended crop. Mention NPK ratios if relevant.
+
+## 💧 Irrigation Plan
+Irrigation method and schedule based on rainfall and temperature. Be specific about frequency.
+
+## 📅 Full Farming Plan
+A week-by-week or phase-wise plan covering:
+- Land preparation
+- Sowing time & method
+- Growth stage care
+- Harvest timing & tips
+
+## ⚠️ Key Warnings
+2-3 important risks or things to watch out for given the weather and region.
+
+## 💰 Expected Outcome
+Expected yield range and any cost-saving tips aligned with the farmer's goal ({ai_goal}).
+
+Keep the tone practical, simple and actionable. Use bullet points where helpful."""
+
+        # ── Call Claude API ───────────────────────────────────────────────────
+        with st.spinner("🤖 AI is analyzing your farm conditions..."):
+            try:
+                import requests, json
+
+                api_key = st.secrets.get("ANTHROPIC_API_KEY", "")
+                if not api_key:
+                    st.error("❌ API key not found. Add ANTHROPIC_API_KEY in Streamlit Secrets (Manage app → Secrets).")
+                    st.stop()
+
+                response = requests.post(
+                    "https://api.anthropic.com/v1/messages",
+                    headers={
+                        "Content-Type": "application/json",
+                        "x-api-key": api_key,
+                        "anthropic-version": "2023-06-01"
+                    },
+                    json={
+                        "model": "claude-sonnet-4-6",
+                        "max_tokens": 1500,
+                        "messages": [{"role": "user", "content": prompt}]
+                    },
+                    timeout=60
+                )
+
+                data = response.json()
+
+                if response.status_code == 200:
+                    ai_text = data["content"][0]["text"]
+
+                    # ── Show data context summary ─────────────────────────────
+                    st.markdown("### 📊 Data-Driven Context Used")
+                    d1, d2, d3, d4 = st.columns(4)
+                    d1.metric("Best Crop (Region+Soil)", ctx["best_crop"])
+                    d2.metric("Avg Yield", f"{ctx['avg_yield']} t/ha")
+                    d3.metric("Fertilizer Gain", f"+{ctx['fert_gain']} t/ha")
+                    d4.metric("Irrigation Gain", f"+{ctx['irri_gain']} t/ha")
+
+                    st.markdown("---")
+
+                    # ── AI Response ───────────────────────────────────────────
+                    st.markdown("### 🤖 Your Personalized Farming Plan")
+                    st.markdown(ai_text)
+
+                    st.markdown("---")
+
+                    # ── Download Plan ─────────────────────────────────────────
+                    plan_text = f"""CROP YIELD AI — PERSONALIZED FARMING PLAN
+==========================================
+Region       : {ai_region}
+Soil Type    : {ai_soil}
+Weather      : {ai_weather}
+Rainfall     : {ai_rainfall} mm
+Temperature  : {ai_temp}°C
+Goal         : {ai_goal}
+==========================================
+
+{ai_text}
+"""
+                    st.download_button(
+                        "⬇️ Download Farming Plan as TXT",
+                        data=plan_text.encode("utf-8"),
+                        file_name="farming_plan.txt",
+                        mime="text/plain",
+                    )
+
+                else:
+                    err = data.get("error", {}).get("message", "Unknown error")
+                    st.error(f"❌ API Error: {err}")
+
+            except requests.exceptions.Timeout:
+                st.error("⏱️ Request timed out. Please try again.")
+            except Exception as e:
+                st.error(f"❌ Something went wrong: {str(e)}")
+
+    else:
+        # ── Placeholder before button click ───────────────────────────────────
+        st.info("👆 Fill in your farm details above and click **Generate AI Farming Plan** to get your personalized recommendation.")
+
+        st.markdown("### 🌟 What the AI Advisor covers:")
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            st.markdown("""
+            **🌱 Crop Recommendation**
+            - Best crop for your soil & region
+            - Based on 1M+ real records
+            - Aligned with your goal
+            """)
+        with c2:
+            st.markdown("""
+            **🧪 Fertilizer & Irrigation**
+            - NPK ratios & dosage
+            - Irrigation schedule
+            - Cost-saving tips
+            """)
+        with c3:
+            st.markdown("""
+            **📅 Full Farming Plan**
+            - Phase-wise schedule
+            - Sowing to harvest
+            - Risk warnings
+            """)

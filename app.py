@@ -1000,8 +1000,9 @@ Keep the tone practical, simple and actionable. Use bullet points where helpful.
             try:
                 import requests, json
 
-                api_key = st.secrets.get("ANTHROPIC_API_KEY", "")
-                if not api_key:
+                try:
+                    api_key = st.secrets["ANTHROPIC_API_KEY"]
+                except KeyError:
                     st.error("❌ API key not found. Add ANTHROPIC_API_KEY in Streamlit Secrets (Manage app → Secrets).")
                     st.stop()
 

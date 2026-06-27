@@ -4,7 +4,8 @@ import numpy as np
 import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
-from matplotlib.patches import FancyArrowPatch
+import plotly.express as px
+import plotly.graph_objects as go
 
 # ── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -67,6 +68,21 @@ div[data-testid="metric-container"] {
     text-align:center;
 }
 
+.region-card {
+    border-radius:14px;
+    padding:16px 20px;
+    margin-bottom:12px;
+    color:white;
+    font-family:sans-serif;
+}
+
+.rec-card {
+    border-radius:12px;
+    padding:18px;
+    text-align:center;
+    margin-bottom:8px;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -92,6 +108,12 @@ FEATURES = ['Rainfall_mm', 'Temperature_Celsius', 'Days_to_Harvest',
 
 YIELD_MEDIAN = 4.651808
 
+REGION_COLORS = {
+    "North": "#2E8B57",
+    "South": "#FF7F50",
+    "East":  "#4682B4",
+}
+
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
 
@@ -110,7 +132,8 @@ with st.sidebar:
             "🏠 Overview",
             "🔮 Predict Yield",
             "📊 EDA Dashboard",
-            "📈 Model Insights"
+            "📈 Model Insights",
+            "🗺️ Region Analysis",       # ← NEW PAGE
         ]
     )
 
@@ -212,6 +235,7 @@ if page == "🏠 Overview":
         st.pyplot(fig)
         plt.close()
 
+
 # ══════════════════════════════════════════════════════════════════════════════
 # PAGE 2 — PREDICT
 # ══════════════════════════════════════════════════════════════════════════════
@@ -310,7 +334,6 @@ elif page == "🔮 Predict Yield":
                   delta=f"{delta:+.3f} vs your prediction")
         st.markdown("---")
 
-  
 
 # ══════════════════════════════════════════════════════════════════════════════
 # PAGE 3 — EDA DASHBOARD
@@ -468,3 +491,350 @@ elif page == "📈 Model Insights":
 - **Classes are balanced**
 - **Model generalises well**
 """)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# PAGE 5 — REGION ANALYSIS  (NEW)
+# ══════════════════════════════════════════════════════════════════════════════
+elif page == "🗺️ Region Analysis":
+    st.title("🗺️ Region-wise Yield Analysis")
+    st.markdown("Explore crop yield patterns across **North, South, and East** regions "
+                "with interactive charts and smart farming recommendations.")
+    st.markdown("---")
+
+    # ── Sidebar filters (scoped to this page) ────────────────────────────────
+    with st.sidebar:
+        st.markdown("---")
+        st.markdown("### 🔍 Region Filters")
+
+        regions  = ["All"] + sorted(df["Region"].dropna().unique().tolist())
+        sel_region = st.selectbox("Region", regions, key="ra_region")
+
+        crops = ["All"] + sorted(df["Crop"].dropna().unique().tolist())
+        sel_crop = st.selectbox("Crop", crops, key="ra_crop")
+
+        soils = ["All"] + sorted(df["Soil_Type"].dropna().unique().tolist())
+        sel_soil = st.selectbox("Soil Type", soils, key="ra_soil")
+
+        weathers = ["All"] + sorted(df["Weather_Condition"].dropna().unique().tolist())
+        sel_weather = st.selectbox("Weather Condition", weathers, key="ra_weather")
+
+        sel_fertilizer = st.selectbox("Fertilizer Used", ["All", "Yes", "No"], key="ra_fert")
+        sel_irrigation  = st.selectbox("Irrigation Used",  ["All", "Yes", "No"], key="ra_irri")
+
+    # ── Apply filters ─────────────────────────────────────────────────────────
+    fdf = df.copy()
+    if sel_region    != "All": fdf = fdf[fdf["Region"]            == sel_region]
+    if sel_crop      != "All": fdf = fdf[fdf["Crop"]              == sel_crop]
+    if sel_soil      != "All": fdf = fdf[fdf["Soil_Type"]         == sel_soil]
+    if sel_weather   != "All": fdf = fdf[fdf["Weather_Condition"] == sel_weather]
+    if sel_fertilizer != "All":
+        fdf = fdf[fdf["Fertilizer_Used"] == (sel_fertilizer == "Yes")]
+    if sel_irrigation != "All":
+        fdf = fdf[fdf["Irrigation_Used"] == (sel_irrigation == "Yes")]
+
+    if fdf.empty:
+        st.warning("⚠️ No records match the selected filters. Please adjust the sidebar filters.")
+        st.stop()
+
+    # ── KPI Cards ─────────────────────────────────────────────────────────────
+    st.subheader("📊 Summary Statistics")
+    k1, k2, k3, k4 = st.columns(4)
+    k1.metric("Total Records",       f"{len(fdf):,}")
+    k2.metric("Avg Yield (t/ha)",    f"{fdf['Yield_tons_per_hectare'].mean():.2f}")
+    k3.metric("Max Yield (t/ha)",    f"{fdf['Yield_tons_per_hectare'].max():.2f}")
+    k4.metric("Avg Days to Harvest", f"{fdf['Days_to_Harvest'].mean():.0f}")
+
+    st.markdown("---")
+
+    # ── ROW 1 : Region Cards + Avg Yield Bar ─────────────────────────────────
+    col_cards, col_bar = st.columns([1, 1.6])
+
+    with col_cards:
+        st.subheader("🗾 Region Overview")
+        region_stats = (
+            df.groupby("Region")["Yield_tons_per_hectare"]
+            .agg(["mean", "count"])
+            .rename(columns={"mean": "Avg Yield", "count": "Records"})
+            .reset_index()
+        )
+        for _, row in region_stats.iterrows():
+            region_name = row["Region"]
+            color  = REGION_COLORS.get(region_name, "#888")
+            border = "border: 3px solid #FFD700;" if (sel_region == region_name or sel_region == "All") else "opacity:0.45;"
+            st.markdown(
+                f"""<div style="background:{color};{border}border-radius:14px;
+                            padding:14px 18px;margin-bottom:10px;color:white;">
+                  <b style="font-size:18px;">{region_name} Region</b><br>
+                  🌾 Avg Yield : <b>{row['Avg Yield']:.2f} t/ha</b><br>
+                  📋 Records   : <b>{int(row['Records']):,}</b>
+                </div>""",
+                unsafe_allow_html=True,
+            )
+
+    with col_bar:
+        st.subheader("📈 Avg Yield by Region")
+        agg = (
+            fdf.groupby("Region")["Yield_tons_per_hectare"]
+            .mean().reset_index()
+            .sort_values("Yield_tons_per_hectare", ascending=False)
+        )
+        fig = px.bar(
+            agg, x="Region", y="Yield_tons_per_hectare",
+            color="Region", color_discrete_map=REGION_COLORS,
+            text_auto=".2f",
+            labels={"Yield_tons_per_hectare": "Avg Yield (t/ha)"},
+        )
+        fig.update_traces(textposition="outside")
+        fig.update_layout(showlegend=False, height=320,
+                          plot_bgcolor="rgba(0,0,0,0)",
+                          yaxis=dict(gridcolor="#e0e0e0"))
+        st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown("---")
+
+    # ── ROW 2 : Crop-wise + Soil-wise ────────────────────────────────────────
+    c1, c2 = st.columns(2)
+
+    with c1:
+        st.subheader("🌽 Crop-wise Avg Yield")
+        crop_agg = (
+            fdf.groupby(["Crop", "Region"])["Yield_tons_per_hectare"]
+            .mean().reset_index()
+        )
+        fig2 = px.bar(
+            crop_agg, x="Crop", y="Yield_tons_per_hectare",
+            color="Region", barmode="group",
+            color_discrete_map=REGION_COLORS,
+            labels={"Yield_tons_per_hectare": "Avg Yield (t/ha)"},
+        )
+        fig2.update_layout(height=360, plot_bgcolor="rgba(0,0,0,0)",
+                           xaxis_tickangle=-30, yaxis=dict(gridcolor="#e0e0e0"))
+        st.plotly_chart(fig2, use_container_width=True)
+
+    with c2:
+        st.subheader("🪨 Soil-wise Avg Yield")
+        soil_agg = (
+            fdf.groupby(["Soil_Type", "Region"])["Yield_tons_per_hectare"]
+            .mean().reset_index()
+        )
+        fig3 = px.bar(
+            soil_agg, x="Soil_Type", y="Yield_tons_per_hectare",
+            color="Region", barmode="group",
+            color_discrete_map=REGION_COLORS,
+            labels={"Yield_tons_per_hectare": "Avg Yield (t/ha)"},
+        )
+        fig3.update_layout(height=360, plot_bgcolor="rgba(0,0,0,0)",
+                           xaxis_tickangle=-30, yaxis=dict(gridcolor="#e0e0e0"))
+        st.plotly_chart(fig3, use_container_width=True)
+
+    st.markdown("---")
+
+    # ── ROW 3 : Weather + Fertilizer/Irrigation Impact ───────────────────────
+    c3, c4 = st.columns(2)
+
+    with c3:
+        st.subheader("🌤️ Weather Condition vs Yield")
+        weather_agg = (
+            fdf.groupby("Weather_Condition")["Yield_tons_per_hectare"]
+            .mean().reset_index()
+            .sort_values("Yield_tons_per_hectare", ascending=True)
+        )
+        fig4 = px.bar(
+            weather_agg, x="Yield_tons_per_hectare", y="Weather_Condition",
+            orientation="h", color="Yield_tons_per_hectare",
+            color_continuous_scale="Greens", text_auto=".2f",
+            labels={"Yield_tons_per_hectare": "Avg Yield (t/ha)",
+                    "Weather_Condition": "Weather"},
+        )
+        fig4.update_layout(height=320, coloraxis_showscale=False,
+                           plot_bgcolor="rgba(0,0,0,0)")
+        st.plotly_chart(fig4, use_container_width=True)
+
+    with c4:
+        st.subheader("💧 Fertilizer & Irrigation Impact")
+        fdf = fdf.copy()
+        fdf["Practice"] = fdf.apply(lambda r:
+            "Fert✅ Irr✅" if r["Fertilizer_Used"] and r["Irrigation_Used"] else
+            "Fert✅ Irr❌" if r["Fertilizer_Used"] else
+            "Fert❌ Irr✅" if r["Irrigation_Used"] else
+            "Fert❌ Irr❌", axis=1)
+        practice_agg = (
+            fdf.groupby("Practice")["Yield_tons_per_hectare"]
+            .mean().reset_index()
+            .sort_values("Yield_tons_per_hectare", ascending=False)
+        )
+        fig5 = px.bar(
+            practice_agg, x="Practice", y="Yield_tons_per_hectare",
+            color="Practice", text_auto=".2f",
+            labels={"Yield_tons_per_hectare": "Avg Yield (t/ha)"},
+        )
+        fig5.update_layout(height=320, showlegend=False,
+                           plot_bgcolor="rgba(0,0,0,0)",
+                           yaxis=dict(gridcolor="#e0e0e0"))
+        st.plotly_chart(fig5, use_container_width=True)
+
+    st.markdown("---")
+
+    # ── ROW 4 : Scatter plots ─────────────────────────────────────────────────
+    st.subheader("🌧️ Climate vs Yield")
+    sc1, sc2 = st.columns(2)
+    sample_fdf = fdf.sample(min(5000, len(fdf)), random_state=42)
+
+    with sc1:
+        fig6 = px.scatter(
+            sample_fdf, x="Rainfall_mm", y="Yield_tons_per_hectare",
+            color="Region", color_discrete_map=REGION_COLORS,
+            opacity=0.5, trendline="ols",
+            labels={"Rainfall_mm": "Rainfall (mm)",
+                    "Yield_tons_per_hectare": "Yield (t/ha)"},
+            title="Rainfall vs Yield",
+        )
+        fig6.update_layout(height=340, plot_bgcolor="rgba(0,0,0,0)")
+        st.plotly_chart(fig6, use_container_width=True)
+
+    with sc2:
+        fig7 = px.scatter(
+            sample_fdf, x="Temperature_Celsius", y="Yield_tons_per_hectare",
+            color="Region", color_discrete_map=REGION_COLORS,
+            opacity=0.5, trendline="ols",
+            labels={"Temperature_Celsius": "Temperature (°C)",
+                    "Yield_tons_per_hectare": "Yield (t/ha)"},
+            title="Temperature vs Yield",
+        )
+        fig7.update_layout(height=340, plot_bgcolor="rgba(0,0,0,0)")
+        st.plotly_chart(fig7, use_container_width=True)
+
+    st.markdown("---")
+
+    # ── ROW 5 : Days to Harvest by Region & Crop ─────────────────────────────
+    st.subheader("🗓️ Days to Harvest by Region & Crop")
+    harvest_agg = (
+        fdf.groupby(["Crop", "Region"])["Days_to_Harvest"]
+        .mean().reset_index()
+    )
+    fig8 = px.bar(
+        harvest_agg, x="Crop", y="Days_to_Harvest",
+        color="Region", barmode="group",
+        color_discrete_map=REGION_COLORS,
+        labels={"Days_to_Harvest": "Avg Days to Harvest"},
+    )
+    fig8.update_layout(height=340, plot_bgcolor="rgba(0,0,0,0)",
+                       xaxis_tickangle=-20, yaxis=dict(gridcolor="#e0e0e0"))
+    st.plotly_chart(fig8, use_container_width=True)
+
+    st.markdown("---")
+
+    # ── ROW 6 : SMART FARMING RECOMMENDATION ─────────────────────────────────
+    st.subheader("🌱 Smart Farming Recommendation")
+    st.markdown("Enter your field details to get a **fertilizer & irrigation recommendation** "
+                "based on historical yield patterns from similar conditions.")
+
+    r1, r2, r3 = st.columns(3)
+    inp_region  = r1.selectbox("Your Region",    sorted(df["Region"].dropna().unique()),       key="rec_region")
+    inp_crop    = r2.selectbox("Your Crop",       sorted(df["Crop"].dropna().unique()),         key="rec_crop")
+    inp_soil    = r3.selectbox("Your Soil Type",  sorted(df["Soil_Type"].dropna().unique()),    key="rec_soil")
+
+    r4, r5 = st.columns(2)
+    inp_rainfall = r4.slider(
+        "Expected Rainfall (mm)",
+        int(df["Rainfall_mm"].min()), int(df["Rainfall_mm"].max()),
+        int(df["Rainfall_mm"].median()), key="rec_rain"
+    )
+    inp_temp = r5.slider(
+        "Expected Temperature (°C)",
+        int(df["Temperature_Celsius"].min()), int(df["Temperature_Celsius"].max()),
+        int(df["Temperature_Celsius"].median()), key="rec_temp"
+    )
+
+    inp_weather = st.selectbox(
+        "Expected Weather Condition",
+        sorted(df["Weather_Condition"].dropna().unique()),
+        key="rec_weather"
+    )
+
+    if st.button("🔍 Get Recommendation", type="primary", key="rec_btn"):
+
+        # Filter similar records
+        mask = (
+            (df["Region"]            == inp_region) &
+            (df["Crop"]              == inp_crop) &
+            (df["Soil_Type"]         == inp_soil) &
+            (df["Weather_Condition"] == inp_weather)
+        )
+        sub = df[mask]
+        if len(sub) < 10:
+            sub = df[(df["Region"] == inp_region) & (df["Crop"] == inp_crop)]
+
+        if sub.empty:
+            st.warning("⚠️ Not enough similar records to generate a recommendation.")
+        else:
+            combo = (
+                sub.groupby(["Fertilizer_Used", "Irrigation_Used"])
+                ["Yield_tons_per_hectare"]
+                .mean().reset_index()
+                .sort_values("Yield_tons_per_hectare", ascending=False)
+                .iloc[0]
+            )
+            rec_fert = bool(combo["Fertilizer_Used"])
+            rec_irri = bool(combo["Irrigation_Used"])
+            exp_yield = combo["Yield_tons_per_hectare"]
+
+            low_rain  = inp_rainfall < df["Rainfall_mm"].quantile(0.33)
+            high_rain = inp_rainfall > df["Rainfall_mm"].quantile(0.67)
+
+            ra, rb = st.columns(2)
+
+            with ra:
+                fert_text  = "✅ Recommended"   if rec_fert else "❌ Not Required"
+                fert_color = "#d4edda"           if rec_fert else "#f8d7da"
+                st.markdown(
+                    f"""<div style="background:{fert_color};border-radius:12px;
+                                    padding:18px;text-align:center;">
+                        <h4>🧪 Fertilizer</h4>
+                        <h2>{fert_text}</h2>
+                        <p>Based on historical data for<br>
+                        <b>{inp_crop}</b> in <b>{inp_region}</b> on <b>{inp_soil}</b> soil.</p>
+                    </div>""",
+                    unsafe_allow_html=True,
+                )
+
+            with rb:
+                irri_text  = "✅ Recommended"   if rec_irri else "❌ Not Required"
+                irri_color = "#d4edda"           if rec_irri else "#f8d7da"
+                irri_note  = (
+                    "💧 Low rainfall expected — irrigation strongly advised."   if low_rain  else
+                    "🌧️ High rainfall expected — natural water may suffice."    if high_rain else
+                    "Moderate rainfall — irrigate based on crop stage."
+                )
+                st.markdown(
+                    f"""<div style="background:{irri_color};border-radius:12px;
+                                    padding:18px;text-align:center;">
+                        <h4>💧 Irrigation</h4>
+                        <h2>{irri_text}</h2>
+                        <p>{irri_note}</p>
+                    </div>""",
+                    unsafe_allow_html=True,
+                )
+
+            st.success(
+                f"📈 Expected Avg Yield with this combination: **{exp_yield:.2f} tons/hectare**"
+            )
+
+            harvest_est = sub["Days_to_Harvest"].mean()
+            st.info(
+                f"🗓️ Estimated Days to Harvest for **{inp_crop}** in **{inp_region}**: "
+                f"**{harvest_est:.0f} days**"
+            )
+
+    st.markdown("---")
+
+    # ── ROW 7 : Raw Data Table ────────────────────────────────────────────────
+    with st.expander("📋 View Filtered Raw Data"):
+        st.dataframe(fdf.reset_index(drop=True), use_container_width=True, height=300)
+        st.download_button(
+            "⬇️ Download Filtered Data as CSV",
+            data=fdf.to_csv(index=False).encode("utf-8"),
+            file_name="filtered_crop_yield.csv",
+            mime="text/csv",
+        )

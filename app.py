@@ -155,21 +155,21 @@ with st.sidebar:
     st.markdown("---")
 
     page = st.selectbox(
-        "📌 Navigation",
+        " Navigation",
         [
-            "🏠 Overview",
-            "🔮 Predict Yield",
-            "📊 EDA Dashboard",
-            "📈 Model Insights",
-            "🗺️ Region Analysis",
+            " Overview",
+            " Predict Yield",
+            " EDA Dashboard",
+            " Model Insights",
+            " Region Analysis",
             "🤖 AI Farm Advisor",
         ]
     )
 
     st.markdown("---")
 
-    st.metric("🎯 Accuracy", "90%")
-    st.metric("📈 R² Score", "0.88")
+    st.metric(" Accuracy", "90%")
+    st.metric(" R² Score", "0.88")
 
     st.markdown("---")
 
@@ -189,7 +189,7 @@ with st.sidebar:
 # ══════════════════════════════════════════════════════════════════════════════
 # PAGE 1 — OVERVIEW
 # ══════════════════════════════════════════════════════════════════════════════
-if page == "🏠 Overview":
+if page == " Overview":
     st.markdown("""
     <div class="hero">
     <h1>🌾 Smart Crop Yield Analytics</h1>
@@ -206,25 +206,25 @@ if page == "🏠 Overview":
 
     c1, c2, c3, c4 = st.columns(4)
 
-    c1.metric("📦 Records", "1M+")
-    c2.metric("🌱 Crops", "6")
-    c3.metric("🌍 Regions", "4")
-    c4.metric("🎯 Accuracy", "90%")
+    c1.metric(" Records", "1M+")
+    c2.metric(" Crops", "6")
+    c3.metric(" Regions", "4")
+    c4.metric(" Accuracy", "90%")
 
     st.markdown("---")
 
     col1, col2 = st.columns(2)
 
     with col1:
-        st.subheader("🌟 Key Insights")
+        st.subheader(" Key Insights")
 
-        st.info("🌧 Rainfall has a strong influence on crop yield.")
-        st.info("💧 Irrigation improves productivity significantly.")
-        st.info("🌱 Rice and Wheat achieve consistently high yields.")
-        st.info("🌍 Climate conditions directly affect harvest outcomes.")
+        st.info(" Rainfall has a strong influence on crop yield.")
+        st.info(" Irrigation improves productivity significantly.")
+        st.info(" Rice and Wheat achieve consistently high yields.")
+        st.info(" Climate conditions directly affect harvest outcomes.")
 
     with col2:
-        st.subheader("🏆 Model Results")
+        st.subheader(" Model Results")
 
         results = pd.DataFrame({
             "Task": ["Regression", "Classification"],
@@ -236,7 +236,7 @@ if page == "🏠 Overview":
 
         st.dataframe(results, use_container_width=True, hide_index=True)
 
-        st.subheader("📊 Yield Distribution Preview")
+        st.subheader(" Yield Distribution Preview")
 
         fig, ax = plt.subplots(figsize=(6, 3))
         ax.hist(
@@ -276,32 +276,32 @@ elif page == "🔮 Predict Yield":
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.subheader("🌍 Location & Crop")
+        st.subheader("Location & Crop")
         region   = st.selectbox("Region",         list(encoders['Region'].classes_))
         soil     = st.selectbox("Soil Type",       list(encoders['Soil_Type'].classes_))
         crop     = st.selectbox("Crop",            list(encoders['Crop'].classes_))
         weather  = st.selectbox("Weather Condition", list(encoders['Weather_Condition'].classes_))
 
     with col2:
-        st.subheader("🌧️ Climate Conditions")
+        st.subheader(" Climate Conditions")
         rainfall = st.slider("Rainfall (mm)",          100, 1000, 550, step=10)
         temp     = st.slider("Temperature (°C)",        15,   40,  27, step=1)
         days     = st.slider("Days to Harvest",         60,  149,  105, step=1)
 
     with col3:
-        st.subheader("🌿 Farm Inputs")
+        st.subheader(" Farm Inputs")
         fertilizer = st.radio("Fertilizer Used?", ["Yes", "No"], horizontal=True)
         irrigation = st.radio("Irrigation Used?", ["Yes", "No"], horizontal=True)
 
         st.markdown("---")
-        st.subheader("📐 Derived Features")
+        st.subheader(" Derived Features")
         rain_per_day   = rainfall / days
         climate_index  = (temp * rainfall) / 1000
         st.info(f"**Rain per Day:** {rain_per_day:.2f} mm/day")
         st.info(f"**Climate Index:** {climate_index:.2f}")
 
     st.markdown("---")
-    if st.button("🚀 Predict Now", use_container_width=True, type="primary"):
+    if st.button(" Predict Now", use_container_width=True, type="primary"):
         fert_int = 1 if fertilizer == "Yes" else 0
         irri_int = 1 if irrigation == "Yes" else 0
 
@@ -333,18 +333,18 @@ elif page == "🔮 Predict Yield":
             </div>""", unsafe_allow_html=True)
 
         with r2:
-            label     = "High Yield 🟢" if clf_pred == 1 else "Low Yield 🔴"
+            label     = "High Yield " if clf_pred == 1 else "Low Yield "
             box_class = "high-yield" if clf_pred == 1 else "low-yield"
             conf      = clf_prob[clf_pred] * 100
             st.markdown(f"""
             <div class='prediction-box {box_class}'>
-                🎯 Classification<br>
+                  Classification<br>
                 <span style='font-size:2.2rem'>{label}</span><br>
                 <span style='font-size:1rem;opacity:0.85'>Confidence: {conf:.1f}%</span>
             </div>""", unsafe_allow_html=True)
 
         # Confidence bar
-        st.markdown("#### 📊 Class Probability")
+        st.markdown("####  Class Probability")
         prob_df = pd.DataFrame({'Class': ['Low Yield', 'High Yield'], 'Probability': clf_prob})
         fig, ax = plt.subplots(figsize=(6, 2))
         colors = ['#b5541f', '#2d6a4f']
@@ -356,7 +356,7 @@ elif page == "🔮 Predict Yield":
         st.pyplot(fig); plt.close()
 
         # Comparison to dataset average
-        st.markdown("#### 📌 How does this compare?")
+        st.markdown("####  How does this compare?")
         avg = df.groupby('Crop')['Yield_tons_per_hectare'].mean()[crop]
         delta = reg_pred - avg
         st.metric(f"Avg yield for {crop}", f"{avg:.3f} tons/ha",
@@ -367,11 +367,11 @@ elif page == "🔮 Predict Yield":
 # ══════════════════════════════════════════════════════════════════════════════
 # PAGE 3 — EDA DASHBOARD
 # ══════════════════════════════════════════════════════════════════════════════
-elif page == "📊 EDA Dashboard":
-    st.title("📊 Exploratory Data Analysis")
+elif page == " EDA Dashboard":
+    st.title(" Exploratory Data Analysis")
     st.markdown("---")
 
-    tab1, tab2, tab3, tab4 = st.tabs(["📦 Distributions", "🌱 Crop Analysis", "🌍 Region Analysis", "🔗 Correlations"])
+    tab1, tab2, tab3, tab4 = st.tabs([" Distributions", " Crop Analysis", " Region Analysis", "Correlations"])
 
     with tab1:
         st.subheader("Numerical Feature Distributions")
@@ -467,10 +467,10 @@ elif page == "📈 Model Insights":
     st.title("📈 Model Insights")
     st.markdown("---")
 
-    tab1, tab2 = st.tabs(["🌲 Feature Importance", "🎯 Model Performance"])
+    tab1, tab2 = st.tabs([" Feature Importance", " Model Performance"])
 
     with tab1:
-        st.subheader("🌲 Feature Importance")
+        st.subheader("Feature Importance")
 
         st.info("""
         This project uses HistGradientBoosting models.
@@ -501,7 +501,7 @@ elif page == "📈 Model Insights":
             "MAE": [0.456, 0.442],
             "Training Speed": ["~3 min (100k)", "~2 min (1M)"],
             "Memory": ["High", "Low"],
-            "Large Data": ["❌ Slow", "✅ Fast"],
+            "Large Data": [" Slow", " Fast"],
         })
 
         st.dataframe(compare, use_container_width=True, hide_index=True)
@@ -513,8 +513,8 @@ elif page == "📈 Model Insights":
         st.markdown("""
 | | Predicted Low | Predicted High |
 |---|---|---|
-| **Actual Low** | ✅ 90k True Negative | ❌ 10k False Positive |
-| **Actual High** | ❌ 10k False Negative | ✅ 90k True Positive |
+| **Actual Low** | 90k True Negative | 10k False Positive |
+| **Actual High** |  10k False Negative |  90k True Positive |
 
 - **90% of predictions are correct**
 - **Classes are balanced**
@@ -534,7 +534,7 @@ elif page == "🗺️ Region Analysis":
     # ── Sidebar filters (scoped to this page) ────────────────────────────────
     with st.sidebar:
         st.markdown("---")
-        st.markdown("### 🔍 Region Filters")
+        st.markdown("###  Region Filters")
 
         regions  = ["All"] + sorted(df["Region"].dropna().unique().tolist())
         sel_region = st.selectbox("Region", regions, key="ra_region")
@@ -563,11 +563,11 @@ elif page == "🗺️ Region Analysis":
         fdf = fdf[fdf["Irrigation_Used"] == (sel_irrigation == "Yes")]
 
     if fdf.empty:
-        st.warning("⚠️ No records match the selected filters. Please adjust the sidebar filters.")
+        st.warning("No records match the selected filters. Please adjust the sidebar filters.")
         st.stop()
 
     # ── KPI Cards ─────────────────────────────────────────────────────────────
-    st.subheader("📊 Summary Statistics")
+    st.subheader("Summary Statistics")
     k1, k2, k3, k4 = st.columns(4)
     k1.metric("Total Records",       f"{len(fdf):,}")
     k2.metric("Avg Yield (t/ha)",    f"{fdf['Yield_tons_per_hectare'].mean():.2f}")
@@ -596,7 +596,7 @@ elif page == "🗺️ Region Analysis":
                             padding:14px 18px;margin-bottom:10px;color:white;">
                   <b style="font-size:18px;">{region_name} Region</b><br>
                   🌾 Avg Yield : <b>{row['Avg Yield']:.2f} t/ha</b><br>
-                  📋 Records   : <b>{int(row['Records']):,}</b>
+                    Records   : <b>{int(row['Records']):,}</b>
                 </div>""",
                 unsafe_allow_html=True,
             )
@@ -626,7 +626,7 @@ elif page == "🗺️ Region Analysis":
     c1, c2 = st.columns(2)
 
     with c1:
-        st.subheader("🌽 Crop-wise Avg Yield")
+        st.subheader(" Crop-wise Avg Yield")
         crop_agg = (
             fdf.groupby(["Crop", "Region"])["Yield_tons_per_hectare"]
             .mean().reset_index()
@@ -642,7 +642,7 @@ elif page == "🗺️ Region Analysis":
         st.plotly_chart(fig2, use_container_width=True)
 
     with c2:
-        st.subheader("🪨 Soil-wise Avg Yield")
+        st.subheader(" Soil-wise Avg Yield")
         soil_agg = (
             fdf.groupby(["Soil_Type", "Region"])["Yield_tons_per_hectare"]
             .mean().reset_index()
@@ -663,7 +663,7 @@ elif page == "🗺️ Region Analysis":
     c3, c4 = st.columns(2)
 
     with c3:
-        st.subheader("🌤️ Weather Condition vs Yield")
+        st.subheader(" Weather Condition vs Yield")
         weather_agg = (
             fdf.groupby("Weather_Condition")["Yield_tons_per_hectare"]
             .mean().reset_index()
@@ -684,10 +684,10 @@ elif page == "🗺️ Region Analysis":
         st.subheader("💧 Fertilizer & Irrigation Impact")
         fdf = fdf.copy()
         fdf["Practice"] = fdf.apply(lambda r:
-            "Fert✅ Irr✅" if r["Fertilizer_Used"] and r["Irrigation_Used"] else
-            "Fert✅ Irr❌" if r["Fertilizer_Used"] else
-            "Fert❌ Irr✅" if r["Irrigation_Used"] else
-            "Fert❌ Irr❌", axis=1)
+            "Fert Irr" if r["Fertilizer_Used"] and r["Irrigation_Used"] else
+            "Fert Irr" if r["Fertilizer_Used"] else
+            "Fert Irr" if r["Irrigation_Used"] else
+            "Fert Irr", axis=1)
         practice_agg = (
             fdf.groupby("Practice")["Yield_tons_per_hectare"]
             .mean().reset_index()
@@ -706,7 +706,7 @@ elif page == "🗺️ Region Analysis":
     st.markdown("---")
 
     # ── ROW 4 : Scatter plots ─────────────────────────────────────────────────
-    st.subheader("🌧️ Climate vs Yield")
+    st.subheader(" Climate vs Yield")
     sc1, sc2 = st.columns(2)
     sample_fdf = fdf.sample(min(5000, len(fdf)), random_state=42)
 
@@ -737,7 +737,7 @@ elif page == "🗺️ Region Analysis":
     st.markdown("---")
 
     # ── ROW 5 : Days to Harvest by Region & Crop ─────────────────────────────
-    st.subheader("🗓️ Days to Harvest by Region & Crop")
+    st.subheader(" Days to Harvest by Region & Crop")
     harvest_agg = (
         fdf.groupby(["Crop", "Region"])["Days_to_Harvest"]
         .mean().reset_index()
@@ -796,7 +796,7 @@ elif page == "🗺️ Region Analysis":
             sub = df[(df["Region"] == inp_region) & (df["Crop"] == inp_crop)]
 
         if sub.empty:
-            st.warning("⚠️ Not enough similar records to generate a recommendation.")
+            st.warning(" Not enough similar records to generate a recommendation.")
         else:
             combo = (
                 sub.groupby(["Fertilizer_Used", "Irrigation_Used"])
@@ -815,12 +815,12 @@ elif page == "🗺️ Region Analysis":
             ra, rb = st.columns(2)
 
             with ra:
-                fert_text  = "✅ Recommended"   if rec_fert else "❌ Not Required"
+                fert_text  = " Recommended"   if rec_fert else " Not Required"
                 fert_color = "#d4edda"           if rec_fert else "#f8d7da"
                 st.markdown(
                     f"""<div style="background:{fert_color};border-radius:12px;
                                     padding:18px;text-align:center;">
-                        <h4>🧪 Fertilizer</h4>
+                        <h4> Fertilizer</h4>
                         <h2>{fert_text}</h2>
                         <p>Based on historical data for<br>
                         <b>{inp_crop}</b> in <b>{inp_region}</b> on <b>{inp_soil}</b> soil.</p>
@@ -829,17 +829,17 @@ elif page == "🗺️ Region Analysis":
                 )
 
             with rb:
-                irri_text  = "✅ Recommended"   if rec_irri else "❌ Not Required"
+                irri_text  = " Recommended"   if rec_irri else " Not Required"
                 irri_color = "#d4edda"           if rec_irri else "#f8d7da"
                 irri_note  = (
-                    "💧 Low rainfall expected — irrigation strongly advised."   if low_rain  else
-                    "🌧️ High rainfall expected — natural water may suffice."    if high_rain else
+                    " Low rainfall expected — irrigation strongly advised."   if low_rain  else
+                    " High rainfall expected — natural water may suffice."    if high_rain else
                     "Moderate rainfall — irrigate based on crop stage."
                 )
                 st.markdown(
                     f"""<div style="background:{irri_color};border-radius:12px;
                                     padding:18px;text-align:center;">
-                        <h4>💧 Irrigation</h4>
+                        <h4> Irrigation</h4>
                         <h2>{irri_text}</h2>
                         <p>{irri_note}</p>
                     </div>""",
@@ -847,22 +847,22 @@ elif page == "🗺️ Region Analysis":
                 )
 
             st.success(
-                f"📈 Expected Avg Yield with this combination: **{exp_yield:.2f} tons/hectare**"
+                f" Expected Avg Yield with this combination: **{exp_yield:.2f} tons/hectare**"
             )
 
             harvest_est = sub["Days_to_Harvest"].mean()
             st.info(
-                f"🗓️ Estimated Days to Harvest for **{inp_crop}** in **{inp_region}**: "
+                f" Estimated Days to Harvest for **{inp_crop}** in **{inp_region}**: "
                 f"**{harvest_est:.0f} days**"
             )
 
     st.markdown("---")
 
     # ── ROW 7 : Raw Data Table ────────────────────────────────────────────────
-    with st.expander("📋 View Filtered Raw Data"):
+    with st.expander(" View Filtered Raw Data"):
         st.dataframe(fdf.reset_index(drop=True), use_container_width=True, height=300)
         st.download_button(
-            "⬇️ Download Filtered Data as CSV",
+            " Download Filtered Data as CSV",
             data=fdf.to_csv(index=False).encode("utf-8"),
             file_name="filtered_crop_yield.csv",
             mime="text/csv",
@@ -872,10 +872,10 @@ elif page == "🗺️ Region Analysis":
 # ══════════════════════════════════════════════════════════════════════════════
 # PAGE 6 — AI FARM ADVISOR  (Claude API powered)
 # ══════════════════════════════════════════════════════════════════════════════
-elif page == "🤖 AI Farm Advisor":
+elif page == " AI Farm Advisor":
     st.markdown("""
     <div class="hero">
-        <h1>🤖 AI Farm Advisor</h1>
+        <h1> AI Farm Advisor</h1>
         <p>Powered by Claude AI · Get personalized crop, fertilizer & full farming plans</p>
     </div>
     """, unsafe_allow_html=True)
@@ -887,13 +887,13 @@ elif page == "🤖 AI Farm Advisor":
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.subheader("🌍 Location & Soil")
+        st.subheader("Location & Soil")
         ai_region  = st.selectbox("Region",    sorted(df["Region"].dropna().unique()),        key="ai_region")
         ai_soil    = st.selectbox("Soil Type",  sorted(df["Soil_Type"].dropna().unique()),     key="ai_soil")
         ai_weather = st.selectbox("Expected Weather", sorted(df["Weather_Condition"].dropna().unique()), key="ai_weather")
 
     with col2:
-        st.subheader("🌧️ Climate")
+        st.subheader(" Climate")
         ai_rainfall = st.slider("Expected Rainfall (mm)",
                                 int(df["Rainfall_mm"].min()), int(df["Rainfall_mm"].max()),
                                 int(df["Rainfall_mm"].median()), key="ai_rain")
@@ -903,7 +903,7 @@ elif page == "🤖 AI Farm Advisor":
         ai_days     = st.slider("Available Harvest Window (days)", 60, 149, 105, key="ai_days")
 
     with col3:
-        st.subheader("🌿 Current Practices")
+        st.subheader(" Current Practices")
         ai_fertilizer = st.radio("Do you use Fertilizer?", ["Yes", "No"], horizontal=True, key="ai_fert")
         ai_irrigation = st.radio("Do you use Irrigation?", ["Yes", "No"], horizontal=True, key="ai_irri")
         ai_crop_pref  = st.selectbox("Preferred Crop (or let AI decide)",
@@ -940,7 +940,7 @@ elif page == "🤖 AI Farm Advisor":
             "avg_harvest": round(avg_harvest, 0),
         }
 
-    if st.button("🚀 Generate AI Farming Plan", type="primary", use_container_width=True, key="ai_btn"):
+    if st.button(" Generate AI Farming Plan", type="primary", use_container_width=True, key="ai_btn"):
 
         ctx = get_data_context(ai_region, ai_soil, ai_weather, ai_rainfall, ai_temp)
 
@@ -996,14 +996,14 @@ Expected yield range and any cost-saving tips aligned with the farmer's goal ({a
 Keep the tone practical, simple and actionable. Use bullet points where helpful."""
 
         # ── Call Groq API ────────────────────────────────────────────────────
-        with st.spinner("🤖 AI is analyzing your farm conditions..."):
+        with st.spinner(" AI is analyzing your farm conditions..."):
             try:
                 import requests, json
 
                 try:
                     api_key = st.secrets["GROQ_API_KEY"]
                 except KeyError:
-                    st.error("❌ API key not found. Add GROQ_API_KEY in Streamlit Secrets (Manage app → Secrets).")
+                    st.error(" API key not found. Add GROQ_API_KEY in Streamlit Secrets (Manage app → Secrets).")
                     st.stop()
 
                 response = requests.post(
@@ -1027,7 +1027,7 @@ Keep the tone practical, simple and actionable. Use bullet points where helpful.
                     ai_text = data["choices"][0]["message"]["content"]
 
                     # ── Show data context summary ─────────────────────────────
-                    st.markdown("### 📊 Data-Driven Context Used")
+                    st.markdown("###  Data-Driven Context Used")
                     d1, d2, d3, d4 = st.columns(4)
                     d1.metric("Best Crop (Region+Soil)", ctx["best_crop"])
                     d2.metric("Avg Yield", f"{ctx['avg_yield']} t/ha")
@@ -1037,7 +1037,7 @@ Keep the tone practical, simple and actionable. Use bullet points where helpful.
                     st.markdown("---")
 
                     # ── AI Response ───────────────────────────────────────────
-                    st.markdown("### 🤖 Your Personalized Farming Plan")
+                    st.markdown("###  Your Personalized Farming Plan")
                     st.markdown(ai_text)
 
                     st.markdown("---")
@@ -1056,7 +1056,7 @@ Goal         : {ai_goal}
 {ai_text}
 """
                     st.download_button(
-                        "⬇️ Download Farming Plan as TXT",
+                        " Download Farming Plan as TXT",
                         data=plan_text.encode("utf-8"),
                         file_name="farming_plan.txt",
                         mime="text/plain",
@@ -1064,18 +1064,18 @@ Goal         : {ai_goal}
 
                 else:
                     err = data.get("error", {}).get("message", "Unknown error")
-                    st.error(f"❌ API Error: {err}")
+                    st.error(f" API Error: {err}")
 
             except requests.exceptions.Timeout:
-                st.error("⏱️ Request timed out. Please try again.")
+                st.error(" Request timed out. Please try again.")
             except Exception as e:
-                st.error(f"❌ Something went wrong: {str(e)}")
+                st.error(f" Something went wrong: {str(e)}")
 
     else:
         # ── Placeholder before button click ───────────────────────────────────
-        st.info("👆 Fill in your farm details above and click **Generate AI Farming Plan** to get your personalized recommendation.")
+        st.info(" Fill in your farm details above and click **Generate AI Farming Plan** to get your personalized recommendation.")
 
-        st.markdown("### 🌟 What the AI Advisor covers:")
+        st.markdown("###  What the AI Advisor covers:")
         c1, c2, c3 = st.columns(3)
         with c1:
             st.markdown("""
@@ -1086,14 +1086,14 @@ Goal         : {ai_goal}
             """)
         with c2:
             st.markdown("""
-            **🧪 Fertilizer & Irrigation**
+            ** Fertilizer & Irrigation**
             - NPK ratios & dosage
             - Irrigation schedule
             - Cost-saving tips
             """)
         with c3:
             st.markdown("""
-            **📅 Full Farming Plan**
+            ** Full Farming Plan**
             - Phase-wise schedule
             - Sowing to harvest
             - Risk warnings
